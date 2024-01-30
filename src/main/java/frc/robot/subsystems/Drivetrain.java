@@ -334,7 +334,7 @@ public class Drivetrain extends SubsystemBase {
    */
   public void drive(
     double xSpeed, double ySpeed, double rot, boolean fieldRelative, double periodSeconds) {
-      var mecanumDriveWheelSpeeds =
+      /*var mecanumDriveWheelSpeeds =
           PhysicalConstants.kDriveKinematics.toWheelSpeeds(
              ChassisSpeeds.discretize(
                   fieldRelative
@@ -343,7 +343,14 @@ public class Drivetrain extends SubsystemBase {
                       : new ChassisSpeeds(xSpeed, ySpeed, rot),
                   periodSeconds));
       mecanumDriveWheelSpeeds.desaturate(PhysicalConstants.kMaxVelocity);
-      setSpeeds(mecanumDriveWheelSpeeds);
+      setSpeeds(mecanumDriveWheelSpeeds);*/
+
+      if (fieldRelative){
+        m_drive.driveCartesian(xSpeed, ySpeed, rot, m_gyro.getRotation2d());
+      }
+      else {
+        m_drive.driveCartesian(xSpeed, ySpeed, rot);
+      }
 
       //log("Driving with speeds X: " + xSpeed + " Y: " + ySpeed + " Rot: " + rot);
       //SmartDashboard.putNumber("Joy1 X", xSpeed);
