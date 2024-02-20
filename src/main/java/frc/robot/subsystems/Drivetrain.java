@@ -195,10 +195,10 @@ public class Drivetrain extends SubsystemBase {
 
 
     //Register values for dashboard
-    SendableRegistry.addChild(m_drive, m_frontLeft);
+    /*SendableRegistry.addChild(m_drive, m_frontLeft);
     SendableRegistry.addChild(m_drive, m_rearLeft);
     SendableRegistry.addChild(m_drive, m_frontRight);
-    SendableRegistry.addChild(m_drive, m_rearRight);
+    SendableRegistry.addChild(m_drive, m_rearRight); */
     //TODO: add other sensors? (encoders, gyro, etc.)
 
     // Initialize Shuffleboard widgets
