@@ -8,13 +8,13 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.MecanumDriveMotorVoltages;
 import edu.wpi.first.math.kinematics.MecanumDriveOdometry;
 import edu.wpi.first.math.kinematics.MecanumDriveWheelPositions;
 import edu.wpi.first.math.kinematics.MecanumDriveWheelSpeeds;
 import edu.wpi.first.networktables.GenericEntry;
 
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -24,12 +24,11 @@ import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.PhysicalConstants;
 import frc.robot.Constants.AutoConstants;
 
-
-
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
-import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.CANSparkLowLevel.MotorType;
 
 
 
@@ -54,11 +53,6 @@ public class Drivetrain extends SubsystemBase {
     private GenericEntry FRDistanceEntry;
     private GenericEntry RRDistanceEntry;
 
-    private GenericEntry FLPositionEntry;
-    private GenericEntry RLPositionEntry;
-    private GenericEntry FRPositionEntry;
-    private GenericEntry RRPositionEntry;
-
     private GenericEntry FLVoltageEntry;
     private GenericEntry RLVoltageEntry;
     private GenericEntry FRVoltageEntry;
@@ -69,18 +63,11 @@ public class Drivetrain extends SubsystemBase {
     private GenericEntry Joy2XEntry;
 
 
-  /*
-  public void log(String message) {
-    System.out.println(Instant.now() + ": " + message);
-  }
-  */
-
-  //Testbed motor controllers
-  private final WPI_TalonSRX m_frontLeft = new WPI_TalonSRX(DriveConstants.kFrontLeftMotorPort);
-  private final WPI_VictorSPX m_rearLeft = new WPI_VictorSPX(DriveConstants.kRearLeftMotorPort);
-  private final WPI_TalonSRX m_frontRight = new WPI_TalonSRX(DriveConstants.kFrontRightMotorPort);
-  private final WPI_VictorSPX m_rearRight = new WPI_VictorSPX(DriveConstants.kRearRightMotorPort);
-
+  private final CANSparkMax m_frontLeft = new CANSparkMax(DriveConstants.kFrontLeftMotorPort, MotorType.kBrushless);
+  private final CANSparkMax m_rearLeft = new CANSparkMax(DriveConstants.kRearLeftMotorPort, MotorType.kBrushless);
+  private final CANSparkMax m_frontRight = new CANSparkMax(DriveConstants.kFrontRightMotorPort, MotorType.kBrushless);
+  private final CANSparkMax m_rearRight = new CANSparkMax(DriveConstants.kRearRightMotorPort, MotorType.kBrushless);
+  
   private final MecanumDrive m_drive =
     new MecanumDrive(m_frontLeft::set, m_rearLeft::set, m_frontRight::set, m_rearRight::set);
 
@@ -88,48 +75,20 @@ public class Drivetrain extends SubsystemBase {
 
 
   //Encoders
-   
-
   // The front-left-side drive encoder
-  private final Encoder m_frontLeftEncoder =
-      new Encoder(
-          DriveConstants.kFrontLeftEncoderPorts[0],
-          DriveConstants.kFrontLeftEncoderPorts[1],
-          DriveConstants.kFrontLeftEncoderReversed);
+  private final RelativeEncoder m_frontLeftEncoder;
 
   // The rear-left-side drive encoder
-  private final Encoder m_rearLeftEncoder =
-      new Encoder(
-          DriveConstants.kRearLeftEncoderPorts[0],
-          DriveConstants.kRearLeftEncoderPorts[1],
-          DriveConstants.kRearLeftEncoderReversed);
+  private final RelativeEncoder m_rearLeftEncoder;
 
-  // The front-right--side drive encoder
-  private final Encoder m_frontRightEncoder =
-      new Encoder(
-          DriveConstants.kFrontRightEncoderPorts[0],
-          DriveConstants.kFrontRightEncoderPorts[1],
-          DriveConstants.kFrontRightEncoderReversed);
+  // The front-right-side drive encoder
+  private final RelativeEncoder m_frontRightEncoder;
 
   // The rear-right-side drive encoder
-  private final Encoder m_rearRightEncoder =
-      new Encoder(
-          DriveConstants.kRearRightEncoderPorts[0],
-          DriveConstants.kRearRightEncoderPorts[1],
-          DriveConstants.kRearRightEncoderReversed);
+  private final RelativeEncoder m_rearRightEncoder;
 
-   /*        
-  // Wheel PID controllers
-  private final PIDController m_TranslationPID =
-      new PIDController(AutoConstants.kPTranslation,
-      AutoConstants.kITranslation,
-      AutoConstants.kDTranslation);
-  private final PIDController m_RotationPID =
-      new PIDController(AutoConstants.kPRotation,
-      AutoConstants.kIRotation,
-      AutoConstants.kDRotation);
 
-   */
+  
   private final PIDController m_frontLeftPIDController =
       new PIDController(PhysicalConstants.kPFrontLeft, 
                         PhysicalConstants.kIFrontLeft,
@@ -151,19 +110,6 @@ public class Drivetrain extends SubsystemBase {
                         PhysicalConstants.kDRearRight);
 
 
-  //Translation PID
-  private final PIDController m_translationPID = 
-      new PIDController(PhysicalConstants.kPTranslation, 
-                        PhysicalConstants.kITranslation,
-                        PhysicalConstants.kDTranslation);
-
-  //Rotation PID
-  private final PIDController m_rotationPID = 
-      new PIDController(PhysicalConstants.kPRotation, 
-                        PhysicalConstants.kIRotation,
-                        PhysicalConstants.kDRotation);
-
-
   // The gyro sensor
   private final AHRS m_gyro = new AHRS();
 
@@ -177,7 +123,10 @@ public class Drivetrain extends SubsystemBase {
           new MecanumDriveWheelPositions());
 
   // The feedforward for the drive TODO: how do you tune this?
-  private final SimpleMotorFeedforward m_feedforward = new SimpleMotorFeedforward(1, 3);
+  private final SimpleMotorFeedforward m_FLfeedforward = new SimpleMotorFeedforward(1.5893, 15.323, 4.224);
+  private final SimpleMotorFeedforward m_RLfeedforward = new SimpleMotorFeedforward(1.349, 15.451, 6.3319);
+  private final SimpleMotorFeedforward m_FRfeedforward = new SimpleMotorFeedforward(0.20682, 27.605, 28.609);
+  private final SimpleMotorFeedforward m_RRfeedforward = new SimpleMotorFeedforward(1.0352, 18.084, 2.7686);
 
 
   /** Constructor -- initialize values here */
@@ -194,23 +143,11 @@ public class Drivetrain extends SubsystemBase {
       }).start();
 
 
-    //Register values for dashboard
-    /*SendableRegistry.addChild(m_drive, m_frontLeft);
-    SendableRegistry.addChild(m_drive, m_rearLeft);
-    SendableRegistry.addChild(m_drive, m_frontRight);
-    SendableRegistry.addChild(m_drive, m_rearRight); */
-    //TODO: add other sensors? (encoders, gyro, etc.)
 
     // Initialize Shuffleboard widgets
     headingEntry = driveTab.add("Heading", 0).withWidget("Gyro").withPosition(0, 0).withSize(2, 2).getEntry();
     turnRateEntry = driveTab.add("Turn Rate", 0).withWidget("Dial").withPosition(2, 0).withSize(2, 2).getEntry();
     fieldRelativeEntry = driveTab.add("Field Relative", false).withWidget("Boolean Box").withPosition(4, 0).withSize(1, 1).getEntry();
-  
-    // Initialize Shuffleboard widgets for encoder positions
-    FLPositionEntry = driveTab.add("FL Encoder Position", 0).getEntry();
-    RLPositionEntry = driveTab.add("RL Encoder Position", 0).getEntry();
-    FRPositionEntry = driveTab.add("FR Encoder Position", 0).getEntry();
-    RRPositionEntry = driveTab.add("RR Encoder Position", 0).getEntry();
 
     // Initialize Shuffleboard widgets for encoder distances
     FLDistanceEntry = driveTab.add("FL Encoder Distance", 0.0).getEntry();
@@ -238,35 +175,49 @@ public class Drivetrain extends SubsystemBase {
 
 
     //Testbed Factory reset motor controllers
-    m_frontLeft.configFactoryDefault();
-    m_rearLeft.configFactoryDefault();
-    m_frontRight.configFactoryDefault();
-    m_rearRight.configFactoryDefault();
+    m_frontLeft.restoreFactoryDefaults();
+    m_rearLeft.restoreFactoryDefaults();
+    m_frontRight.restoreFactoryDefaults();
+    m_rearRight.restoreFactoryDefaults();
 
-    //Testbed break/coast mode
-    m_frontLeft.setNeutralMode(com.ctre.phoenix.motorcontrol.NeutralMode.Brake);
-    m_rearLeft.setNeutralMode(com.ctre.phoenix.motorcontrol.NeutralMode.Brake);
-    m_frontRight.setNeutralMode(com.ctre.phoenix.motorcontrol.NeutralMode.Brake);
-    m_rearRight.setNeutralMode(com.ctre.phoenix.motorcontrol.NeutralMode.Brake);
 
-    //Testbed
-    m_frontLeftEncoder.setDistancePerPulse(PhysicalConstants.kEncoderDistancePerPulse);
-    m_rearLeftEncoder.setDistancePerPulse(PhysicalConstants.kEncoderDistancePerPulse);
-    m_frontRightEncoder.setDistancePerPulse(PhysicalConstants.kEncoderDistancePerPulse);
-    m_rearRightEncoder.setDistancePerPulse(PhysicalConstants.kEncoderDistancePerPulse);
-    
-    //Invert motors on one side
-    m_frontLeft.setInverted(DriveConstants.kFrontLeftMotorReversed);
-    m_rearLeft.setInverted(DriveConstants.kRearLeftMotorReversed);
-    m_frontRight.setInverted(DriveConstants.kFrontRightMotorReversed);
-    m_rearRight.setInverted(DriveConstants.kRearRightMotorReversed);
- 
+    //break/coast mode TODO: should these be coast?
+    m_frontLeft.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    m_rearLeft.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    m_frontRight.setIdleMode(CANSparkMax.IdleMode.kBrake);
+    m_rearRight.setIdleMode(CANSparkMax.IdleMode.kBrake);
+
+    // Set up encoders
+    m_frontLeftEncoder = m_frontLeft.getEncoder();
+    m_rearLeftEncoder = m_rearLeft.getEncoder();
+    m_frontRightEncoder = m_frontRight.getEncoder();
+    m_rearRightEncoder = m_rearRight.getEncoder();
+
+    m_frontLeftEncoder.setPositionConversionFactor(PhysicalConstants.kEncoderDistancePerPulse);
+    m_rearLeftEncoder.setPositionConversionFactor(PhysicalConstants.kEncoderDistancePerPulse);
+    m_frontRightEncoder.setPositionConversionFactor(PhysicalConstants.kEncoderDistancePerPulse);
+    m_rearRightEncoder.setPositionConversionFactor(PhysicalConstants.kEncoderDistancePerPulse);
+
+    //m_frontLeftEncoder.setInverted(DriveConstants.kFrontLeftEncoderReversed);
+    //m_rearLeftEncoder.setInverted(DriveConstants.kRearLeftEncoderReversed);
+    //m_frontRightEncoder.setInverted(DriveConstants.kFrontLeftEncoderReversed);
+    //m_rearRightEncoder.setInverted(DriveConstants.kRearLeftEncoderReversed);
+
+    //invert motors on one side
+  m_frontLeft.setInverted(DriveConstants.kFrontLeftMotorReversed);
+  m_rearLeft.setInverted(DriveConstants.kRearLeftMotorReversed);
+  m_frontRight.setInverted(DriveConstants.kFrontRightMotorReversed);
+  m_rearRight.setInverted(DriveConstants.kRearRightMotorReversed);
+
     // Configure AutoBuilder
+
     AutoBuilder.configureHolonomic(
       this::getPose, 
       this::resetPose, 
       this::getChassisSpeeds, 
-      this::driveFieldRelative, 
+      //this::driveFieldRelative,  
+      this::driveRobotRelative,
+
       AutoConstants.kPathFollowerConfig,
       () -> {
         // Boolean supplier that controls when the path will be mirrored for the red alliance
@@ -287,6 +238,46 @@ public class Drivetrain extends SubsystemBase {
     
   }
 
+  /**Sets the drive MotorController to a voltage. */
+  public void setDriveMotorControllersVolts(MecanumDriveMotorVoltages volts) {
+    m_frontLeft.setVoltage(volts.frontLeftVoltage);
+    m_rearLeft.setVoltage(volts.rearLeftVoltage);
+    m_frontRight.setVoltage(volts.frontRightVoltage);
+    m_rearRight.setVoltage(volts.rearRightVoltage);
+  }
+
+  public void setWheelSpeeds(double forwardSpeedMetersPerSecond, double strafeSpeedMetersPerSecond, double angularSpeedRadiansPerSecond) {
+    var chassisSpeeds = new ChassisSpeeds (forwardSpeedMetersPerSecond, strafeSpeedMetersPerSecond, angularSpeedRadiansPerSecond);
+    var wheelSpeeds = PhysicalConstants.kDriveKinematics.toWheelSpeeds(chassisSpeeds);
+
+    wheelSpeeds.desaturate(PhysicalConstants.kMaxVelocity);
+    applyPidAndFeedforward(wheelSpeeds);
+  }
+
+
+
+  private void applyPidAndFeedforward(MecanumDriveWheelSpeeds targetWheelSpeeds) {
+    // Calculate PID outputs and apply feedforward
+    double flOutput = calculateOutput(m_frontLeftEncoder, targetWheelSpeeds.frontLeftMetersPerSecond, m_frontLeftPIDController, m_FLfeedforward); 
+    double rlOutput = calculateOutput(m_rearLeftEncoder, targetWheelSpeeds.rearLeftMetersPerSecond, m_rearLeftPIDController, m_RLfeedforward); 
+    double frOutput = calculateOutput(m_frontRightEncoder, targetWheelSpeeds.frontRightMetersPerSecond, m_frontRightPIDController, m_FRfeedforward); 
+    double rrOutput = calculateOutput(m_rearRightEncoder, targetWheelSpeeds.rearRightMetersPerSecond, m_rearRightPIDController, m_RRfeedforward); 
+
+    // Set motor voltages
+    m_frontLeft.setVoltage(flOutput);
+    m_rearLeft.setVoltage(rlOutput);
+    m_frontRight.setVoltage(frOutput);
+    m_rearRight.setVoltage(rrOutput);
+  } 
+
+  private double calculateOutput(RelativeEncoder m_frontLefEncoder, double targetSpeed, PIDController pidController, SimpleMotorFeedforward feedforward) {
+    double currentSpeed = m_frontLefEncoder.getVelocity();
+    //double currentSpeed = m_frontLeftEncoder2.getRate();
+    double pidOutput = pidController.calculate(currentSpeed, targetSpeed);
+    double feedforwardOutput = feedforward.calculate(targetSpeed);
+    return pidOutput + feedforwardOutput;
+  }
+  /* 
   public void setTranslationSetpoint(double translationSpeed) {
     m_translationPID.setSetpoint(translationSpeed);
     // Logic to convert translation speed to individual wheel speeds
@@ -296,6 +287,7 @@ public void setRotationSetpoint(double rotationSpeed) {
     m_rotationPID.setSetpoint(rotationSpeed);
     // Logic to convert rotation speed to individual wheel speeds
   }
+  */
 
 /* Periodic
  * 
@@ -307,8 +299,21 @@ public void setRotationSetpoint(double rotationSpeed) {
   @Override
   public void periodic() {
 
+    //TODO update this
     // Update the odometry in the periodic block
-    m_odometry.update(m_gyro.getRotation2d().times(-1), getCurrentWheelDistances());
+    /* 
+        var wheelSpeeds = new MecanumDriveWheelSpeeds(
+          m_frontLeftEncoder.getVelocity(), m_rearLeftEncoder.getVelocity(),
+          m_frontRightEncoder.getVelocity(), m_rearRightEncoder.getVelocity()
+        );
+    */
+        
+        var wheelPositions = new MecanumDriveWheelPositions(
+          m_frontLeftEncoder.getPosition(), m_rearLeftEncoder.getPosition(),
+          m_frontRightEncoder.getPosition(), m_rearRightEncoder.getPosition()
+        );
+
+    m_odometry.update(m_gyro.getRotation2d().times(-1), wheelPositions);
 
     // Update the field
     field.setRobotPose(getPose());
@@ -364,8 +369,14 @@ public void setRotationSetpoint(double rotationSpeed) {
   public void driveRobotRelative(ChassisSpeeds robotRelativeSpeeds) {
     ChassisSpeeds targetSpeeds = ChassisSpeeds.discretize(robotRelativeSpeeds, 0.02);
 
-    MecanumDriveWheelSpeeds targetStates = PhysicalConstants.kDriveKinematics.toWheelSpeeds(targetSpeeds);
-    setSpeeds(targetStates);
+    //MecanumDriveWheelSpeeds targetStates = PhysicalConstants.kDriveKinematics.toWheelSpeeds(targetSpeeds);
+    setWheelSpeeds(targetSpeeds.vxMetersPerSecond, targetSpeeds.vyMetersPerSecond, targetSpeeds.omegaRadiansPerSecond);
+    //m_frontLeft.set(targetStates.frontLeftMetersPerSecond);
+    //m_rearLeft.set(targetStates.rearLeftMetersPerSecond);
+    //m_frontRight.set(targetStates.frontRightMetersPerSecond);
+    //m_rearRight.set(targetStates.rearRightMetersPerSecond);
+    //setWheelSpeeds(targetStates);
+    //setWheelSpeeds(targetStates);
 
   }
 
@@ -425,30 +436,36 @@ public void setRotationSetpoint(double rotationSpeed) {
   public void resetEncoders() {
 
     //Testbed
+    /* 
     m_frontLeftEncoder.reset();
     m_rearLeftEncoder.reset();
     m_frontRightEncoder.reset();
     m_rearRightEncoder.reset();
+   */
+      m_frontLeftEncoder.setPosition(0);
+      m_rearLeftEncoder.setPosition(0);
+      m_frontRightEncoder.setPosition(0);
+      m_rearRightEncoder.setPosition(0);
   }
 
 
-  public Encoder getFrontLeftEncoder() {
+  public RelativeEncoder getFrontLeftEncoder() {
     //Testbed
     return m_frontLeftEncoder;
   }
 
-  public Encoder getRearLeftEncoder() {
+  public RelativeEncoder getRearLeftEncoder() {
     //Testbed
     return m_rearLeftEncoder;
   }
 
-  public Encoder getFrontRightEncoder() {
+  public RelativeEncoder getFrontRightEncoder() {
     //Testbed
     return m_frontRightEncoder;
   }
 
 
-  public Encoder getRearRightEncoder() {
+  public RelativeEncoder getRearRightEncoder() {
 
     //Testbed
     return m_rearRightEncoder;
@@ -460,16 +477,20 @@ public void setRotationSetpoint(double rotationSpeed) {
    * @return the current wheel speeds in a MecanumDriveWheelSpeeds object.
    */
   public MecanumDriveWheelSpeeds getCurrentWheelSpeeds() {
-
-
-    return new MecanumDriveWheelSpeeds(
+    
+  return new MecanumDriveWheelSpeeds(
+      m_frontLeftEncoder.getVelocity(),
+      m_rearLeftEncoder.getVelocity(),
+      m_frontRightEncoder.getVelocity(),
+      m_rearRightEncoder.getVelocity());
 
         //Testbed
+        /* 
         m_frontLeftEncoder.getRate(),
         m_rearLeftEncoder.getRate(),
         m_frontRightEncoder.getRate(),
         m_rearRightEncoder.getRate());
-
+*/
 
   }
 
@@ -483,76 +504,26 @@ public void setRotationSetpoint(double rotationSpeed) {
 
     //Testbed
     return new MecanumDriveWheelPositions(
-        m_frontLeftEncoder.getDistance(),
-        m_rearLeftEncoder.getDistance(),
-        m_frontRightEncoder.getDistance(),
-        m_rearRightEncoder.getDistance());
-  }
-
-  /**
-   * Set the desired speeds for each wheel.
-   *
-   * @param speeds The desired wheel speeds.
-   */
-  public void setSpeeds(MecanumDriveWheelSpeeds speeds) {
-    // Calculate average target speed for drivetrain
-    double averageCurrentSpeed = (m_frontLeftEncoder.getRate() + m_rearLeftEncoder.getRate()+ 
-                                m_frontRightEncoder.getRate() + m_rearRightEncoder.getRate() / 4.0);
-    double averageTargetSpeed = (speeds.frontLeftMetersPerSecond + speeds.rearLeftMetersPerSecond + 
-                                speeds.frontRightMetersPerSecond + speeds.rearRightMetersPerSecond) / 4.0;
-    // calculate PID output
-    double translateOutput = m_translationPID.calculate(averageCurrentSpeed, averageTargetSpeed);
-
-
-    // Applie PID to all motors
-    m_frontLeft.setVoltage(translateOutput + m_feedforward.calculate(speeds.frontLeftMetersPerSecond));
-    m_frontRight.setVoltage(translateOutput + m_feedforward.calculate(speeds.frontRightMetersPerSecond));
-    m_rearLeft.setVoltage(translateOutput  + m_feedforward.calculate(speeds.rearLeftMetersPerSecond));
-    m_rearRight.setVoltage(translateOutput + m_feedforward.calculate(speeds.rearRightMetersPerSecond));
-
-  
-    final double frontLeftFeedforward = m_feedforward.calculate(speeds.frontLeftMetersPerSecond);
-    final double frontRightFeedforward = m_feedforward.calculate(speeds.frontRightMetersPerSecond);
-    final double backLeftFeedforward = m_feedforward.calculate(speeds.rearLeftMetersPerSecond);
-    final double backRightFeedforward = m_feedforward.calculate(speeds.rearRightMetersPerSecond);
-
-    final double frontLeftOutput =
-        m_frontLeftPIDController.calculate(
-            m_frontLeftEncoder.getRate(), speeds.frontLeftMetersPerSecond);
-    final double frontRightOutput =
-        m_frontRightPIDController.calculate(
-            m_frontRightEncoder.getRate(), speeds.frontRightMetersPerSecond);
-    final double backLeftOutput =
-        m_rearLeftPIDController.calculate(
-            m_rearLeftEncoder.getRate(), speeds.rearLeftMetersPerSecond);
-    final double backRightOutput =
-        m_rearRightPIDController.calculate(
-            m_rearRightEncoder.getRate(), speeds.rearRightMetersPerSecond);
-
-    m_frontLeft.setVoltage(frontLeftOutput + frontLeftFeedforward);
-    m_frontRight.setVoltage(frontRightOutput + frontRightFeedforward);
-    m_rearLeft.setVoltage(backLeftOutput + backLeftFeedforward);
-    m_rearRight.setVoltage(backRightOutput + backRightFeedforward);
-
-    //log("Setting speeds FL: " + speeds.frontLeftMetersPerSecond + " FR: " + speeds.frontRightMetersPerSecond + " ...");
+      m_frontLeftEncoder.getPosition(),
+        m_rearLeftEncoder.getPosition(),
+        m_frontRightEncoder.getPosition(),
+        m_rearRightEncoder.getPosition());
   }
 
 
-
-  public ChassisSpeeds getChassisSpeeds(){
+   public ChassisSpeeds getChassisSpeeds(){
     // Convert to chassis speeds
     ChassisSpeeds chassisSpeeds = PhysicalConstants.kDriveKinematics.toChassisSpeeds(getCurrentWheelSpeeds());
     return chassisSpeeds;
-  }
-
-
+   }
 
   /**
    * Sets the max output of the drive. Useful for scaling the drive to drive more slowly.
    *
    * @param maxOutput the maximum output to which the drive will be constrained
    */
-  public void setMaxOutput(double maxOutput) {
+  
+   public void setMaxOutput(double maxOutput) {
     m_drive.setMaxOutput(maxOutput);
   }
 
@@ -584,10 +555,7 @@ public void setRotationSetpoint(double rotationSpeed) {
     return m_gyro.isConnected();
   }
 
-
-
-
-/*
+    /*
     // Set up custom logging to add the current path to a field 2d widget
     PathPlannerLogging.setLogActivePathCallback((poses) -> field.getObject("path").setPoses(poses));
 
@@ -596,26 +564,21 @@ public void setRotationSetpoint(double rotationSpeed) {
 
   public void showTelemetry(){
     // Update the Shuffleboard entries with current values
-    FLPositionEntry.setDouble(m_frontLeftEncoder.getRaw());
-    RLPositionEntry.setDouble(m_rearLeftEncoder.getRaw());
-    FRPositionEntry.setDouble(m_frontRightEncoder.getRaw());
-    RRPositionEntry.setDouble(m_rearRightEncoder.getRaw());
+FLDistanceEntry.setDouble(m_frontLeftEncoder.getPosition());
+    RLDistanceEntry.setDouble(m_rearLeftEncoder.getPosition());
+    FRDistanceEntry.setDouble(m_frontRightEncoder.getPosition());
+    RRDistanceEntry.setDouble(m_rearRightEncoder.getPosition());
 
-    FLDistanceEntry.setDouble(m_frontLeftEncoder.getDistance());
-    RLDistanceEntry.setDouble(m_rearLeftEncoder.getDistance());
-    FRDistanceEntry.setDouble(m_frontRightEncoder.getDistance());
-    RRDistanceEntry.setDouble(m_rearRightEncoder.getDistance());
-
-    FLVoltageEntry.setDouble(m_frontLeft.getMotorOutputVoltage());
-    RLVoltageEntry.setDouble(m_rearLeft.getMotorOutputVoltage());
-    FRVoltageEntry.setDouble(m_frontRight.getMotorOutputVoltage());
-    RRVoltageEntry.setDouble(m_rearRight.getMotorOutputVoltage());
-
-    FLRateEntry.setDouble(m_frontLeftEncoder.getRate());
-    RLRateEntry.setDouble(m_rearLeftEncoder.getRate());
-    FRRateEntry.setDouble(m_frontRightEncoder.getRate());
-    RRRateEntry.setDouble(m_rearRightEncoder.getRate());
-
+    FLVoltageEntry.setDouble(m_frontLeft.getBusVoltage());
+    RLVoltageEntry.setDouble(m_rearLeft.getBusVoltage());
+    FRVoltageEntry.setDouble(m_frontRight.getBusVoltage());
+    RRVoltageEntry.setDouble(m_rearRight.getBusVoltage());
+    
+    FLRateEntry.setDouble(m_frontLeftEncoder.getVelocity());
+    RLRateEntry.setDouble(m_rearLeftEncoder.getVelocity());
+    FRRateEntry.setDouble(m_frontRightEncoder.getVelocity());
+    RRRateEntry.setDouble(m_rearRightEncoder.getVelocity());
+    
     headingEntry.setDouble(getHeading());
     turnRateEntry.setDouble(getTurnRate());
     fieldRelativeEntry.setBoolean(getFieldRelative());

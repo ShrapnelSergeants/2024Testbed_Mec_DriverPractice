@@ -100,8 +100,8 @@ public class RobotContainer {
   private void configureButtonBindings() {
     // Drive at half speed when the right bumper is held
     new JoystickButton(m_driverController, Button.kRightBumper.value)
-        .onTrue(new InstantCommand(() -> m_robotDrive.setMaxOutput(0.5)))
-        .onFalse(new InstantCommand(() -> m_robotDrive.setMaxOutput(1)));
+        .onTrue(new InstantCommand(() -> m_robotDrive.setMaxOutput(1)))
+        .onFalse(new InstantCommand(() -> m_robotDrive.setMaxOutput(0.5)));
 
 
 

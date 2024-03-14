@@ -27,6 +27,7 @@ public final class Constants {
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
 
+    /* 
     public static final int kDriverButtonA = 1;
     public static final int kDriverButtonB = 2;
     public static final int kDriverButtonX = 3;
@@ -44,7 +45,7 @@ public final class Constants {
     public static final int kDriverRXAxis = 4;
     public static final int kDriverRYAxis = 5;
     public static final int kDriverRTAxis = 3;
-    
+     */
   }
   
 
@@ -83,11 +84,11 @@ public final class Constants {
 
   public static final class PhysicalConstants {
     // Distance between centers of right and left wheels on robot
-    public static final double kTrackWidthIn = 20; //inches
+    public static final double kTrackWidthIn = 23; //inches
     public static final double kTrackWidth = kTrackWidthIn * 0.0254; //meters
 
   // Distance between centers of front and back wheels on robot
-    public static final double kWheelBaseIn = 24; //inches
+    public static final double kWheelBaseIn = 20; //inches
     public static final double kWheelBase = kWheelBaseIn * 0.0254; //meters
 
   // Drive base radius
@@ -102,11 +103,11 @@ public final class Constants {
             new Translation2d(-kWheelBase / 2, -kTrackWidth / 2));
 
     // Encoder CPR.
-    public static final int kEncoderCPR = 20; //Testbed CIMCoder quadrature 2 channel 20 pulses per channel
+    public static final int kEncoderCPR = 4096; //Testbed CIMCoder quadrature 2 channel 20 pulses per channel 
     //public static final int kEncoderCPR = 42; //Neo integrated encoder
 
     // Gear ratio
-    public static final double kGearRatio = 12.75; //Testbed 12.75:1
+    public static final double kGearRatio = 8.45; //Testbed 12.75:1
     //public static final double kGearRatio = 8.45; //Compbot 8.45:1
 
     // Encoder final CPR
@@ -119,12 +120,12 @@ public final class Constants {
         (kWheelDiameterMeters * Math.PI) / (double) kEncoderFinalCPR;
 
     // Max RPM
-    public static final double kMaxRPM = 5310 / kGearRatio; //Testbed CIM
+    public static final double kMaxRPM = 5676 / kGearRatio; //Testbed CIM
     //public static final double kMaxRPM = 5676 / kGearRatio; //Neo 550
 
     // Max velocity
     //public static final double kMaxVelocity = kMaxRPM * (kWheelDiameterMeters * Math.PI) / 60; //meters per second
-    public static final double kMaxVelocity = 2*kMaxRPM * (kWheelDiameterMeters * Math.PI) / 60; //TODO: test value - adjust
+    public static final double kMaxVelocity = kMaxRPM * (kWheelDiameterMeters * Math.PI) / 60; //TODO: test value - adjust
 
     // Max acceleration
     public static final double kMaxAcceleration = 1.5; //meters per second squared TODO: tune this
@@ -136,25 +137,27 @@ public final class Constants {
     public static final double kMaxAngularAcceleration = Math.PI; //radians per second squared
 
     // Wheel PID Constants
-    public static final double kPFrontLeft = 0.5;
+    public static final double kPFrontLeft = 25.77;
     public static final double kIFrontLeft = 0;
     public static final double kDFrontLeft = 0;
 
-    public static final double kPRearLeft = 0.5;
+    public static final double kPRearLeft = 4.3996;
     public static final double kIRearLeft = 0;
     public static final double kDRearLeft = 0;
 
-    public static final double kPFrontRight = 0.5;
+    public static final double kPFrontRight = 20.656;
     public static final double kIFrontRight = 0;
     public static final double kDFrontRight = 0;
 
-    public static final double kPRearRight = 0.5;
+    public static final double kPRearRight = 15.389;
     public static final double kIRearRight = 0;
     public static final double kDRearRight = 0;
 
-    public static double kPTranslation = 0.5;
+    public static final String kMaxSpeedMetersPerSecond = null;
+
+    public static double kPTranslation = 65.0;
     public static double kITranslation = 0.0;
-    public static double kDTranslation = 0.0;
+    public static double kDTranslation = 35.0;
     
     public static double kPRotation = 0.5;
     public static double kIRotation = 0.0;
@@ -168,7 +171,7 @@ public final class Constants {
 
 
   public static final class AutoConstants {
-    public static final double kMaxSpeedMetersPerSecond = 3; //TODO: adjust
+    public static final double kMaxSpeedMetersPerSecond = 5.36; //TODO: adjust
     public static final double kMaxAccelerationMetersPerSecondSquared = 1.5; //TODO: adjust
     public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
     public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
@@ -183,8 +186,9 @@ public final class Constants {
     // for *your* robot's drive.
     // The SysId tool provides a convenient method for obtaining these values for your robot.
     public static final SimpleMotorFeedforward kFeedforward =
-        new SimpleMotorFeedforward(1.5893, 15.323, 4.224);
+        new SimpleMotorFeedforward(1.5893, 2.16, 0.44);
 
+        /* 
     // Example value only - as above, this must be tuned for your drive!
     public static final double kPTranslation = 64.456; 
     //public static final double kPTranslation = 0.255;
@@ -198,7 +202,7 @@ public final class Constants {
     public static final double kIRotation = 0;
     public static final double kDRotation = 31.613;
     //public static final double kDRotation = 0;
-
+*/
 
 
     // Constraint for the motion profilied robot angle controller
@@ -209,8 +213,8 @@ public final class Constants {
 
     // Path follower config        
     public static final HolonomicPathFollowerConfig kPathFollowerConfig = new HolonomicPathFollowerConfig( 
-      new PIDConstants(AutoConstants.kPTranslation, AutoConstants.kITranslation, AutoConstants.kDTranslation), // Translation PID constants
-      new PIDConstants(AutoConstants.kPRotation, AutoConstants.kIRotation, AutoConstants.kDRotation), // Rotation PID constants
+      new PIDConstants(PhysicalConstants.kPTranslation, PhysicalConstants.kITranslation, PhysicalConstants.kDTranslation), // Translation PID constants
+      new PIDConstants(PhysicalConstants.kPRotation, PhysicalConstants.kIRotation, PhysicalConstants.kDRotation), // Rotation PID constants
       PhysicalConstants.kMaxVelocity, // Max module speed, in m/s
       PhysicalConstants.kDriveBaseRadius, // Drive base radius in meters. Distance from robot center to furthest module.
       new ReplanningConfig()
@@ -235,11 +239,34 @@ public final class Constants {
     //Intake limitSwitches
     public static final int kIntakeLimitUp = 0;
     public static final int kIntakeLimitDown = 1;
-
+    public static final int kIntakeStop = 2;
     //reversed
     public static final boolean kIntakeMotorReversed = false;
     public static final boolean kDeployMotorReversed = false;
 
+    public static final int kDeployCPR = 4096;
+    public static final double kDeployGearRatio = 125.0;
+    public static final double kDeployFinalCPR = kDeployCPR*kDeployGearRatio;
+    public static final double kDeployDistancePerPulse = 360 / (double) kDeployFinalCPR;
+
+    public static final double kDeploySVolts = 1;
+    public static final double kDeployGVolts = 1;
+    public static final double kDeployVVoltsSecondPerDeg = 0.0083;
+    public static final double kDeployAVoltSecondSquaredPerDeg = 0.0017;
+    
+    public static final double kDeployP = 1.0;
+    public static final double kDeployI = 0.0;
+    public static final double kDeployD = 0.0;
+
+    public static final double kDeployMaxVelocityDegPerSecond = 180;
+    public static final double kDeployMaxAccelerationDegPerSecondSquared = 360;
+
+    public static final double kIntakeSpeed = 0.8;
+    public static final double kStowedPosition = 0.0;
+    public static final double kAmpPosition = 80.0;
+    public static final double kDeployedPosition = 135.0;
+    public static final double kArmTolerance = 2.0;
+    
 
   }
 
