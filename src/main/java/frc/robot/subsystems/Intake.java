@@ -29,13 +29,13 @@ public class Intake extends SubsystemBase {
   private final CANSparkMax m_intakeMotor = new CANSparkMax (IntakeConstants.kIntakeMotor,MotorType.kBrushless);
   private final CANSparkMax m_deployMotor = new CANSparkMax (IntakeConstants.kDeployMotor,MotorType.kBrushless);
 
-  private final DigitalInput m_limitUp = new DigitalInput (IntakeConstants.kIntakeLimitUp);
-  private final DigitalInput m_limitDown = new DigitalInput (IntakeConstants.kIntakeLimitUp);
+  //private final DigitalInput m_limitUp = new DigitalInput (IntakeConstants.kIntakeLimitUp);
+  //private final DigitalInput m_limitDown = new DigitalInput (IntakeConstants.kIntakeLimitUp);
   private final RelativeEncoder m_intakePositionEncoder;
 
   private final ArmFeedforward m_deployFeedforward = new ArmFeedforward(IntakeConstants.kDeploySVolts,IntakeConstants.kDeployGVolts,IntakeConstants.kDeployVVoltsSecondPerDeg);
 
-  private final DigitalInput m_intakeStop = new DigitalInput(IntakeConstants.kIntakeStop);
+  //private final DigitalInput m_intakeStop = new DigitalInput(IntakeConstants.kIntakeStop);
   //declare sensor
 
   //Shuffleboard
@@ -91,15 +91,15 @@ public class Intake extends SubsystemBase {
 
 
   public void showIntakeTelemetry(){
-    intakeLimitUp.setBoolean(m_limitUp.get());
-    intakeLimitDown.setBoolean(m_limitDown.get());
+    //intakeLimitUp.setBoolean(m_limitUp.get());
+    //intakeLimitDown.setBoolean(m_limitDown.get());
   }
   public void runIntake(){
-    if (m_intakeStop.get()){
-        stopIntake(); 
-    }else{
+    //if (m_intakeStop.get()){
+        //stopIntake(); 
+    //}else{
       m_intakeMotor.set(IntakeConstants.kIntakeSpeed);
-    }
+    //}
   }
 
   public void reverseIntake(){
@@ -111,25 +111,31 @@ public class Intake extends SubsystemBase {
   }
   
   public void raiseIntake(){
-    double setPoint = Math.min(IntakeConstants.kDeployedPosition, getIntakePositionDegrees());
+    m_deployMotor.set(.1);
+    /*double setPoint = Math.min(IntakeConstants.kDeployedPosition, getIntakePositionDegrees());
     intakePID.setSetpoint(setPoint);
-    m_intakeMotor.setVoltage(intakePID.calculate(getIntakePositionDegrees()) +
-        m_deployFeedforward.calculate(setPoint, 0.0));
+    m_deployMotor.setVoltage(intakePID.calculate(getIntakePositionDegrees()) +
+        m_deployFeedforward.calculate(setPoint, 0.0));*/
   }
 
   public void lowerIntake(){
-    double setPoint = Math.max(IntakeConstants.kStowedPosition, getIntakePositionDegrees());
+    m_deployMotor.set(-.1);
+    /*double setPoint = Math.max(IntakeConstants.kStowedPosition, getIntakePositionDegrees());
     intakePID.setSetpoint(setPoint);
-    m_intakeMotor.setVoltage(intakePID.calculate(getIntakePositionDegrees()) +
-        m_deployFeedforward.calculate(setPoint,0.0));
+    m_deployMotor.setVoltage(intakePID.calculate(getIntakePositionDegrees()) +
+        m_deployFeedforward.calculate(setPoint,0.0));*/
+  }
+
+  public void stopArm(){
+    m_deployMotor.stopMotor();
   }
   
-  public void setAmpPosition(){
+  /*public void setAmpPosition(){
     double setPoint = Math.max(IntakeConstants.kAmpPosition, getIntakePositionDegrees()); //TODO: check math function
     intakePID.setSetpoint(setPoint);
-    m_intakeMotor.setVoltage(intakePID.calculate(getIntakePositionDegrees()) +
+    m_deployMotor.setVoltage(intakePID.calculate(getIntakePositionDegrees()) +
         m_deployFeedforward.calculate(setPoint, 0.0));
-  }
+  }*/
 
   public boolean isIntakeSetPoint(){
     return intakePID.atSetpoint();

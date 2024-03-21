@@ -25,8 +25,10 @@ public final class Constants {
 
 
   public static class OperatorConstants {
-    public static final int kDriverControllerPort = 0;
-
+    //public static final int kDriverControllerPort = 0;
+    public static final int kDriverLeftControllerPort = 0;
+    public static final int kDriverRightControllerPort = 1;
+    public static final int kOpPort = 2;
     /* 
     public static final int kDriverButtonA = 1;
     public static final int kDriverButtonB = 2;
@@ -242,7 +244,7 @@ public final class Constants {
     public static final int kIntakeStop = 2;
     //reversed
     public static final boolean kIntakeMotorReversed = false;
-    public static final boolean kDeployMotorReversed = false;
+    public static final boolean kDeployMotorReversed = true;
 
     public static final int kDeployCPR = 4096;
     public static final double kDeployGearRatio = 125.0;
@@ -250,16 +252,16 @@ public final class Constants {
     public static final double kDeployDistancePerPulse = 360 / (double) kDeployFinalCPR;
 
     public static final double kDeploySVolts = 1;
-    public static final double kDeployGVolts = 1;
-    public static final double kDeployVVoltsSecondPerDeg = 0.0083;
-    public static final double kDeployAVoltSecondSquaredPerDeg = 0.0017;
+    public static final double kDeployGVolts = 0.24;
+    public static final double kDeployVVoltsSecondPerDeg = 0.04;
+    public static final double kDeployAVoltSecondSquaredPerDeg = 0.00;
     
     public static final double kDeployP = 1.0;
     public static final double kDeployI = 0.0;
     public static final double kDeployD = 0.0;
 
-    public static final double kDeployMaxVelocityDegPerSecond = 180;
-    public static final double kDeployMaxAccelerationDegPerSecondSquared = 360;
+    public static final double kDeployMaxVelocityDegPerSecond = 5.64; //180
+    public static final double kDeployMaxAccelerationDegPerSecondSquared = 5.57; //360
 
     public static final double kIntakeSpeed = 0.8;
     public static final double kStowedPosition = 0.0;
@@ -294,6 +296,9 @@ public final class Constants {
     public static final boolean kRightFeedMotorReversed = false;
     public static final boolean kLeftShootingMotorReversed = false;
     public static final boolean kRightShootingMotorReversed = false;
+
+    public static final double kShooterSpeed = 1.0;
+    
   }
 
   public static final class ClimberConstants {

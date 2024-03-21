@@ -123,10 +123,10 @@ public class Drivetrain extends SubsystemBase {
           new MecanumDriveWheelPositions());
 
   // The feedforward for the drive TODO: how do you tune this?
-  private final SimpleMotorFeedforward m_FLfeedforward = new SimpleMotorFeedforward(1.5893, 15.323, 4.224);
-  private final SimpleMotorFeedforward m_RLfeedforward = new SimpleMotorFeedforward(1.349, 15.451, 6.3319);
-  private final SimpleMotorFeedforward m_FRfeedforward = new SimpleMotorFeedforward(0.20682, 27.605, 28.609);
-  private final SimpleMotorFeedforward m_RRfeedforward = new SimpleMotorFeedforward(1.0352, 18.084, 2.7686);
+  private final SimpleMotorFeedforward m_FLfeedforward = new SimpleMotorFeedforward(1.5893, 2.16, 0.54); 
+  private final SimpleMotorFeedforward m_RLfeedforward = new SimpleMotorFeedforward(1.349, 2.16, 0.54);
+  private final SimpleMotorFeedforward m_FRfeedforward = new SimpleMotorFeedforward(0.20682, 2.16, 0.54);
+  private final SimpleMotorFeedforward m_RRfeedforward = new SimpleMotorFeedforward(1.0352, 2.16, 0.54);
 
 
   /** Constructor -- initialize values here */

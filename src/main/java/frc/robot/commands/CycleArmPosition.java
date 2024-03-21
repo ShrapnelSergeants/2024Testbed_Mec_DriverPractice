@@ -21,7 +21,7 @@ public class CycleArmPosition extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    if (cycleUp){
+    /*if (cycleUp){
       if(intake.getIntakePositionDegrees()< IntakeConstants.kAmpPosition){
         intake.setAmpPosition();
       } else if (intake.getIntakePositionDegrees()<
@@ -59,5 +59,7 @@ public class CycleArmPosition extends Command {
   @Override
   public boolean isFinished() {
     return intake.isIntakeSetPoint();
+  }*/
+
   }
 }

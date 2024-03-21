@@ -36,20 +36,23 @@ public class Shooter extends SubsystemBase {
   /** Creates a new Shooter. */
   public Shooter() {
 
-    m_leftFeedMotor.restoreFactoryDefaults();
-    m_rightFeedMotor.restoreFactoryDefaults();
+    //m_leftFeedMotor.restoreFactoryDefaults();
+    //m_rightFeedMotor.restoreFactoryDefaults();
     m_leftShootingMotor.restoreFactoryDefaults();
     m_rightShootingMotor.restoreFactoryDefaults();
 
-    m_leftFeedMotor.setIdleMode(IdleMode.kBrake);
-    m_rightFeedMotor.setIdleMode(IdleMode.kBrake);
+    //m_leftFeedMotor.setIdleMode(IdleMode.kBrake);
+    //m_rightFeedMotor.setIdleMode(IdleMode.kBrake);
     m_leftShootingMotor.setIdleMode(IdleMode.kBrake);
     m_rightShootingMotor.setIdleMode(IdleMode.kBrake);
 
-    m_leftFeedMotor.setInverted(ShooterConstants.kLeftFeedMotorReversed);
-    m_rightFeedMotor.setInverted(ShooterConstants.kRightFeedMotorReversed);
-    m_leftShootingMotor.setInverted(ShooterConstants.kLeftShootingMotorReversed);
-    m_rightShootingMotor.setInverted(ShooterConstants.kRightShootingMotorReversed);
+    //m_leftFeedMotor.setInverted(ShooterConstants.kLeftFeedMotorReversed);
+    //m_rightFeedMotor.setInverted(ShooterConstants.kRightFeedMotorReversed);
+    m_leftShootingMotor.setInverted(ShooterConstants.kLeftShootingMotorReversed); //static values
+    //m_rightShootingMotor.setInverted(ShooterConstants.kRightShootingMotorReversed);
+
+    
+    
 
     //Shuffleboard
     loadedEntry = shooterTab.add("Shooter Loaded",0).withWidget("Boolean Box").withSize(1,1).getEntry();
@@ -66,5 +69,14 @@ public class Shooter extends SubsystemBase {
 
   public void showShooterTelemetry(){
     loadedEntry.setBoolean(m_loadedSensor.get());
+  }
+  
+  public void runShooter(){
+    m_leftShootingMotor.set(ShooterConstants.kShooterSpeed);
+    m_rightShootingMotor.set(ShooterConstants.kShooterSpeed);
+  }
+  public void stopShooter(){
+    m_leftShootingMotor.set(0);
+    m_rightShootingMotor.set(0);
   }
 }
